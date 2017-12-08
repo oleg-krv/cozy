@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.1 -->
+<!-- Generated with glade 3.20.2 -->
 <interface>
   <requires lib="gtk+" version="3.16"/>
   <object class="GtkImage" id="pause_img">
@@ -46,7 +46,10 @@
                   <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="margin_bottom">2</property>
+                    <property name="margin_left">7</property>
+                    <property name="margin_right">7</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">7</property>
                     <property name="hexpand">True</property>
                     <child>
                       <object class="GtkToggleButton" id="author_toggle_button">
@@ -60,7 +63,7 @@
                         <property name="active">True</property>
                         <child>
                           <object class="GtkLabel">
-                            <property name="width_request">90</property>
+                            <property name="width_request">80</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">&lt;big&gt;Author&lt;/big&gt;</property>
@@ -76,6 +79,10 @@
                             <property name="AtkObject::accessible-description" translatable="yes">Filter books by author</property>
                           </object>
                         </child>
+                        <style>
+                          <class name="roundless_button"/>
+                          <class name="toggle_button_left"/>
+                        </style>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -94,7 +101,7 @@
                         <property name="relief">none</property>
                         <child>
                           <object class="GtkLabel">
-                            <property name="width_request">90</property>
+                            <property name="width_request">80</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">&lt;big&gt;Reader&lt;/big&gt;</property>
@@ -110,6 +117,10 @@
                             <property name="AtkObject::accessible-description" translatable="yes">Filter books by reader</property>
                           </object>
                         </child>
+                        <style>
+                          <class name="roundless_button"/>
+                          <class name="toggle_button_right"/>
+                        </style>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -122,6 +133,17 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparator">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -149,6 +171,9 @@
                                     <property name="AtkObject::accessible-name" translatable="yes">List of authors</property>
                                   </object>
                                 </child>
+                                <style>
+                                  <class name="bg_default"/>
+                                </style>
                               </object>
                             </child>
                           </object>
@@ -180,6 +205,9 @@
                                     <property name="AtkObject::accessible-name" translatable="yes">List of readers</property>
                                   </object>
                                 </child>
+                                <style>
+                                  <class name="bg_default"/>
+                                </style>
                               </object>
                             </child>
                           </object>
@@ -198,7 +226,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>
@@ -272,10 +300,6 @@
                 <property name="can_focus">False</property>
                 <property name="margin_top">70</property>
                 <property name="label" translatable="yes">Importing your audiobooks...</property>
-                <attributes>
-                  <attribute name="weight" value="heavy"/>
-                  <attribute name="scale" value="1"/>
-                </attributes>
                 <style>
                   <class name="h2"/>
                 </style>
@@ -534,6 +558,9 @@
                   <object class="GtkSwitch" id="auto_scan_switch">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="margin_right">2</property>
                     <child internal-child="accessible">
                       <object class="AtkObject" id="auto_scan_switch-atkobject">
                         <property name="AtkObject::accessible-name" translatable="yes">Auto scan switch</property>
@@ -652,9 +679,11 @@
                 </child>
                 <child>
                   <object class="GtkVolumeButton" id="volume_button">
+                    <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="focus_on_click">False</property>
                     <property name="receives_default">True</property>
+                    <property name="margin_right">5</property>
                     <property name="relief">none</property>
                     <property name="value">1</property>
                     <property name="size">button</property>
@@ -698,12 +727,28 @@ audio-volume-medium-symbolic</property>
               </packing>
             </child>
             <child>
-              <object class="GtkImage" id="cover_img">
+              <object class="GtkBox" id="cover_img_box">
+                <property name="width_request">40</property>
+                <property name="height_request">40</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_left">5</property>
                 <property name="margin_top">2</property>
                 <property name="margin_bottom">2</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkImage" id="cover_img">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -954,6 +999,7 @@ audio-volume-medium-symbolic</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">Search your library</property>
+                <property name="margin_right">7</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
@@ -980,6 +1026,7 @@ audio-volume-medium-symbolic</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">Sleep timer</property>
+                <property name="margin_right">7</property>
                 <child>
                   <object class="GtkImage" id="timer_image">
                     <property name="visible">True</property>

@@ -138,9 +138,6 @@ class CozyUI:
             self.window.connect("check-resize", self.__window_resized)
 
         # hide wip stuff
-        self.volume_button = self.window_builder.get_object("volume_button")
-        self.volume_button.set_visible(False)
-
         self.search_popover = self.search_builder.get_object("search_popover")
         timer_popover = self.timer_builder.get_object("timer_popover")
 
@@ -182,6 +179,7 @@ class CozyUI:
             "reader_toggle_button")
         self.no_media_file_chooser = self.window_builder.get_object(
             "no_media_file_chooser")
+        self.cover_img_box = self.window_builder.get_object("cover_img_box")
         self.timer_image = self.window_builder.get_object("timer_image")
         self.search_button = self.window_builder.get_object("search_button")
         self.timer_button = self.window_builder.get_object("timer_button")
@@ -286,6 +284,10 @@ class CozyUI:
         self.author_toggle_button.connect("toggled", self.__toggle_author)
         self.reader_toggle_button.connect("toggled", self.__toggle_reader)
 
+        # volume button
+        self.volume_button = self.window_builder.get_object("volume_button")
+        self.volume_button.connect("value-changed", self.__on_volume_changed)
+
         # hide remaining and current labels
         self.current_label.set_visible(False)
         self.remaining_label.set_visible(False)
@@ -296,6 +298,8 @@ class CozyUI:
         self.menu_button.set_menu_model(menu)
 
         if self.is_elementary:
+            self.cover_img_box.props.width_request = 28
+            self.cover_img_box.props.height_request = 28
             about_close_button = self.about_builder.get_object(
                 "button_box").get_children()[2]
             about_close_button.connect("clicked", self.__about_close_clicked)
@@ -444,12 +448,27 @@ class CozyUI:
             self.play_status_updater.stop()
         self.current_book_element.set_playing(False)
 
+    def block_ui_buttons(self, block, scan=False):
+        """
+        Makes the buttons to interact with the player insensetive.
+        :param block: Boolean
+        """
+        sensitive = not block
+        self.play_button.set_sensitive(sensitive)
+        self.volume_button.set_sensitive(sensitive)
+        self.prev_button.set_sensitive(sensitive)
+        self.timer_button.set_sensitive(sensitive)
+
+        if scan:
+            self.scan_action.set_enabled(sensitive)
+            self.location_chooser.set_sensitive(sensitive)
+            self.search_button.set_sensitive(sensitive)
+
     def stop(self):
         """
         Remove all information about a playing book from the ui.
         """
         self.play_button.set_image(self.play_img)
-        self.play_button.set_sensitive(False)
         if self.play_status_updater is not None:
             self.play_status_updater.stop()
 
@@ -465,8 +484,7 @@ class CozyUI:
         self.remaining_label.set_visible(False)
         self.current_label.set_visible(False)
 
-        self.play_button.set_sensitive(False)
-        self.prev_button.set_sensitive(False)
+        self.block_ui_buttons(True)
 
         self.progress_scale.set_sensitive(False)
         if self.current_book_element is not None:
@@ -480,12 +498,7 @@ class CozyUI:
         """
         self.throbber.start()
         self.status_label.set_text(message)
-        self.location_chooser.set_sensitive(False)
-        self.play_button.set_sensitive(False)
-        self.prev_button.set_sensitive(False)
-        self.scan_action.set_enabled(False)
-        self.timer_button.set_sensitive(False)
-        self.search_button.set_sensitive(False)
+        self.block_ui_buttons(True, True)
         if not first:
             self.update_progress_bar.set_fraction(0)
             self.status_stack.props.visible_child_name = "working"
@@ -497,12 +510,7 @@ class CozyUI:
         """
         self.main_stack.props.visible_child_name = "main"
         self.status_stack.props.visible_child_name = "playback"
-        self.scan_action.set_enabled(True)
-        self.location_chooser.set_sensitive(True)
-        self.play_button.set_sensitive(True)
-        self.prev_button.set_sensitive(True)
-        self.timer_button.set_sensitive(True)
-        self.search_button.set_sensitive(True)
+        self.block_ui_buttons(True, False)
         self.throbber.stop()
 
     def check_for_tracks(self):
@@ -513,16 +521,11 @@ class CozyUI:
         if db.books().count() < 1:
             self.no_media_file_chooser.set_current_folder(db.Settings.get().path)
             self.main_stack.props.visible_child_name = "no_media"
-            self.play_button.set_sensitive(False)
-            self.prev_button.set_sensitive(False)
-            self.search_button.set_sensitive(False)
-            self.timer_button.set_sensitive(False)
+            self.block_ui_buttons(True)
+            self.progress_scale.set_visible(False)
         else:
             self.main_stack.props.visible_child_name = "main"
-            self.play_button.set_sensitive(True)
-            self.prev_button.set_sensitive(True)
             self.search_button.set_sensitive(True)
-            self.timer_button.set_sensitive(True)
 
     def set_title_cover(self, pixbuf):
         """
@@ -975,6 +978,7 @@ class CozyUI:
         if self.reader_toggle_button.get_active():
             self.author_toggle_button.set_active(False)
             self.sort_stack.props.visible_child_name = "reader"
+            self.book_box.invalidate_filter()
         elif self.author_toggle_button.get_active() is False:
             self.reader_toggle_button.set_active(True)
 
@@ -985,6 +989,7 @@ class CozyUI:
         if self.author_toggle_button.get_active():
             self.reader_toggle_button.set_active(False)
             self.sort_stack.props.visible_child_name = "author"
+            self.book_box.invalidate_filter()
         elif self.reader_toggle_button.get_active() is False:
             self.author_toggle_button.set_active(True)
 
@@ -993,8 +998,7 @@ class CozyUI:
         track = player.get_current_track()
         self.title_label.set_text(track.book.name)
         self.subtitle_label.set_text(track.name)
-        self.play_button.set_sensitive(True)
-        self.prev_button.set_sensitive(True)
+        self.block_ui_buttons(False, True)
         self.progress_scale.set_sensitive(True)
         self.progress_scale.set_visible(True)
 
@@ -1117,6 +1121,12 @@ class CozyUI:
             container.remove(element)
             element.destroy()
 
+    def __on_volume_changed(self, widget, value):
+        """
+        Sets the ui value in the player.
+        """
+        player.set_volume(value)
+
     def on_close(self, widget, data=None):
         """
         Close and dispose everything that needs to be when window is closed.
@@ -1153,7 +1163,7 @@ class CozyUI:
         """
         Filter the books in the book view according to the selected author/reader or "All".
         """
-        if self.sort_stack.get_visible_child().get_name() == "sort_author_scroller":
+        if self.author_toggle_button.get_active():
             author = self.author_box.get_selected_row().data
             if author is None:
                 return True
