@@ -85,7 +85,7 @@ def update_database(ui):
 
     # remove entries from the db that are no longer existent
     for track in db.Track.select():
-        if not os.path.exists(track.file):
+        if not os.path.isfile(track.file):
             track.delete_instance()
 
     # remove all books that have no tracks
@@ -95,6 +95,7 @@ def update_database(ui):
 
     Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT_IDLE, ui.refresh_content)
     Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT_IDLE, ui.switch_to_playing)
+    Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT_IDLE, ui.block_ui_buttons, False, True)
     Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT_IDLE, ui.check_for_tracks)
 
     if len(failed) > 0:
@@ -192,7 +193,7 @@ def import_file(file, directory, path, update=False):
         length = float(__get_common_track_length(track))
         cover = __get_ogg_cover(track)
         author = __get_common_tag(track, "composer")
-        reader = __get_common_tag(track, "author")
+        reader = __get_common_tag(track, "artist")
         book_name = __get_common_tag(track, "album")
         track_name = __get_common_tag(track, "title")
 

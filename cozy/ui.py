@@ -8,7 +8,7 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gtk, Gio, Gdk, GLib, Gst
 from threading import Thread
 from cozy.book_element import BookElement
-from cozy.tools import RepeatedTimer
+from cozy.tools import RepeatedTimer, is_elementary
 from cozy.import_failed_dialog import ImportFailedDialog
 from cozy.search_results import BookSearchResult, ArtistSearchResult
 from cozy.file_not_found_dialog import FileNotFoundDialog
@@ -56,7 +56,7 @@ class CozyUI:
         self.__load_last_book()
 
     def startup(self):
-        self.__check_current_distro()
+        self.is_elementary = is_elementary()
         self.__init_resources()
         self.__init_css()
         self.__init_actions()
@@ -312,6 +312,10 @@ class CozyUI:
         # hide remaining and current labels
         self.current_label.set_visible(False)
         self.remaining_label.set_visible(False)
+        self.progress_scale.set_visible(False)
+
+        # hide throbber
+        self.throbber.set_visible(False)
 
         # menu
         menu = self.menu_builder.get_object("app_menu")
@@ -429,6 +433,7 @@ class CozyUI:
         """
         Quit app.
         """
+        self.on_close(None)
         self.app.quit()
 
     def about(self, action, parameter):
@@ -457,7 +462,7 @@ class CozyUI:
 
     def play(self):
         if self.current_book_element is None:
-            self.__track_changed()
+            self.track_changed()
         self.play_button.set_image(self.pause_img)
         self.__set_play_status_updater(True)
         self.current_book_element.set_playing(True)
@@ -509,12 +514,16 @@ class CozyUI:
         if self.current_book_element is not None:
             self.current_book_element.set_playing(False)
 
+        if self.current_book_element is not None:
+            self.current_book_element._mark_current_track()
+
     def switch_to_working(self, message, first):
         """
         Switch the UI state to working.
         This is used for example when an import is currently happening.
         This blocks the user from doing some stuff like starting playback.
         """
+        self.throbber.set_visible(True)
         self.throbber.start()
         self.status_label.set_text(message)
         self.block_ui_buttons(True, True)
@@ -531,6 +540,7 @@ class CozyUI:
         self.status_stack.props.visible_child_name = "playback"
         self.block_ui_buttons(True, False)
         self.throbber.stop()
+        self.throbber.set_visible(False)
 
     def check_for_tracks(self):
         """
@@ -796,7 +806,6 @@ class CozyUI:
         inspired by https://stackoverflow.com/questions/24094186/drag-and-drop-file-example-in-pygobject
         """
         if target_type == 80:
-            self.throbber.start()
             self.switch_to_working("copying new files...", False)
             thread = Thread(target=importer.copy, args=(self, selection, ))
             thread.start()
@@ -835,7 +844,6 @@ class CozyUI:
         Clean the database when the audio book location is changed.
         """
         log.debug("Audio book location changed, rebasing the location in db.")
-        self.throbber.start()
         self.location_chooser.set_sensitive(False)
 
         settings = db.Settings.get()
@@ -894,6 +902,7 @@ class CozyUI:
         Reset the search if running and start a new async search.
         """
         self.search_thread_stop.set()
+        self.throbber.set_visible(True)
         self.throbber.start()
 
         # we want to avoid flickering of the search box size
@@ -931,6 +940,7 @@ class CozyUI:
             self.search_thread.start()
         else:
             self.throbber.stop()
+            self.throbber.set_visible(False)
             self.search_stack.set_visible_child_name("start")
             self.search_popover.set_size_request(-1, -1)
 
@@ -989,6 +999,7 @@ class CozyUI:
         # the reader search is the last that finishes
         # so we stop the throbber and reset the prefered height & width
         self.throbber.stop()
+        self.throbber.set_visible(False)
         self.search_popover.set_size_request(-1, -1)
 
     def __toggle_reader(self, button):
@@ -1087,33 +1098,40 @@ class CozyUI:
         player.set_playback_speed(self.speed)
         self.__set_play_status_updater(True)
 
-    def __track_changed(self):
+    def track_changed(self):
         """
         The track loaded in the player has changed.
         Refresh the currently playing track and mark it in the track overview popover.
         """
-        if self.current_track_element is not None:
-            self.current_track_element.play_img.set_from_icon_name(
-                "media-playback-start-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
-
+        # also reset the book playing state
         if self.current_book_element is not None:
             self.current_book_element.set_playing(False)
+            self.current_book_element.select_track(None, False)
 
         curr_track = player.get_current_track()
         self.current_book_element = next(
             filter(
                 lambda x: x.get_children()[0].book.id == curr_track.book.id,
                 self.book_box.get_children()), None).get_children()[0]
-        self.current_track_element = next(
-            filter(
-                lambda x: x.track.id == curr_track.id,
-                self.current_book_element.track_box.get_children()), None)
 
-        self.current_track_element.play_img.set_from_icon_name(
-            "media-playback-start-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
-        self.current_book_element._mark_current_track()
+        self._update_current_track_element()
+
         self.remaining_label.set_visible(True)
         self.current_label.set_visible(True)
+
+    def _update_current_track_element(self):
+        """
+        Updates the current track element to correctly display the play pause icons
+        in the track popups after it was created.
+        """
+        # The track popover is only created on demand
+        # when the user opens it the first time
+        if self.current_book_element is None:
+            return
+
+        if self.current_book_element.popover_created is True:
+            curr_track = player.get_current_track()
+            self.current_book_element.select_track(curr_track, self.is_playing)
 
     def __player_changed(self, event, message):
         """
@@ -1127,17 +1145,15 @@ class CozyUI:
             self.is_playing = True
             self.play()
             self.__start_sleep_timer()
-            self.current_track_element.play_img.set_from_icon_name(
-                "media-playback-pause-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+            self.current_book_element.select_track(None, True)
         elif event == "pause":
             self.is_playing = False
             self.pause()
             self.__pause_sleep_timer()
-            self.current_track_element.play_img.set_from_icon_name(
-                "media-playback-start-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+            self.current_book_element.select_track(None, False)
         elif event == "track-changed":
             self.__update_track_ui()
-            self.__track_changed()
+            self.track_changed()
         elif event == "error":
             if self.dialog_open:
                 return

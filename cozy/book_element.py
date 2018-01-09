@@ -2,6 +2,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
 
 from cozy.db import *
 from cozy.player import *
+import cozy.tools as tools
 
 MAX_BOOK_LENGTH = 60
 MAX_TRACK_LENGTH = 40
@@ -169,6 +170,9 @@ class BookElement(Gtk.Box):
     selected = False
     wait_to_seek = False
     playing = False
+    popover_created = False
+    track_box = None
+    current_track_element = None
 
     def __init__(self, b, ui):
         self.book = b
@@ -184,16 +188,14 @@ class BookElement(Gtk.Box):
 
         # label contains the book name and is limited to x chars
         title_label = Gtk.Label.new("")
-        title = (self.book.name[:MAX_BOOK_LENGTH] + '...') if len(
-            self.book.name) > MAX_BOOK_LENGTH else self.book.name
+        title = tools.shorten_string(self.book.name, MAX_BOOK_LENGTH)
         title_label.set_markup("<b>" + title + "</b>")
         title_label.set_xalign(0.5)
         title_label.set_line_wrap(Pango.WrapMode.WORD_CHAR)
         title_label.props.max_width_chars = 30
         title_label.props.justify = Gtk.Justification.CENTER
 
-        author_label = Gtk.Label.new((self.book.author[:MAX_BOOK_LENGTH] + '...') if len(
-            self.book.author) > MAX_BOOK_LENGTH else self.book.author)
+        author_label = Gtk.Label.new(tools.shorten_string(self.book.author, MAX_BOOK_LENGTH))
         author_label.set_xalign(0.5)
         author_label.set_line_wrap(Pango.WrapMode.WORD_CHAR)
         author_label.props.max_width_chars = 30
@@ -207,9 +209,6 @@ class BookElement(Gtk.Box):
         self.add(self.art)
         self.add(title_label)
         self.add(author_label)
-
-        # create track list popover
-        self.__create_popover()
 
     def __create_popover(self):
         self.popover = Gtk.Popover.new(self)
@@ -228,7 +227,7 @@ class BookElement(Gtk.Box):
 
         count = 0
         for track in tracks(self.book):
-            self.track_box.add(TrackElement(track, self.ui))
+            self.track_box.add(TrackElement(track, self.ui, self))
             count += 1
 
         if Gtk.get_minor_version() > 20:
@@ -248,9 +247,16 @@ class BookElement(Gtk.Box):
         scroller.add_with_viewport(self.track_box)
         scroller.show_all()
 
+        self.popover_created = True
         self._mark_current_track()
+        self.ui._update_current_track_element()
 
     def __on_button_press(self, eventbox, event):
+        if self.popover_created is False:
+            # create track list popover
+            self.__create_popover()
+            self.popover_created = True
+
         self.art.selected = True
         if Gtk.get_minor_version() > 20:
             self.popover.popup()
@@ -269,16 +275,21 @@ class BookElement(Gtk.Box):
         """
         Mark the current track position in the popover.
         """
-        book = Book.select().where(Book.id == self.book.id).get()
-
-        if book.position < 1:
+        if not self.popover_created:
             return
+
+        book = Book.select().where(Book.id == self.book.id).get()
 
         for track_element in self.track_box.get_children():
             if track_element.track.id == book.position:
+                self.current_track_element = track_element
                 track_element.select()
             else:
                 track_element.deselect()
+
+        if book.position < 1:
+            self.current_track_element = self.track_box.get_children()[0]
+            self.current_track_element.select()
 
     def set_playing(self, is_playing):
         if is_playing:
@@ -288,6 +299,35 @@ class BookElement(Gtk.Box):
             self.art.play_button.set_from_resource(
                 "/de/geigi/cozy/play_background.svg")
 
+    def select_track(self, curr_track, playing):
+        """
+        Selects a track in the popover view and sets the play/pause icon.
+        :param curr_track: Track to be selected
+        :param playing: Display play (False) or pause (True) icon
+        """
+        if not self.popover_created:
+            return
+
+        self.deselect_track_element()
+
+        if curr_track is not None:
+            self.current_track_element = next(
+                filter(
+                    lambda x: x.track.id == curr_track.id,
+                    self.track_box.get_children()), None)
+
+        if self.current_track_element is None:
+            self.current_track_element = self.track_box.get_children()[0]
+
+        self.current_track_element.select()
+        self.current_track_element.set_playing(playing)
+
+    def deselect_track_element(self):
+        if self.current_track_element is not None:
+            self.current_track_element.set_playing(False)
+            self.current_track_element.deselect()
+
+
 
 class TrackElement(Gtk.EventBox):
     """
@@ -296,16 +336,18 @@ class TrackElement(Gtk.EventBox):
     track = None
     selected = False
     ui = None
+    book = None
 
-    def __init__(self, t, ui):
+    def __init__(self, t, ui, book):
         self.track = t
         self.ui = ui
+        self.book = book
 
         super(Gtk.EventBox, self).__init__()
         self.connect("enter-notify-event", self._on_enter_notify)
         self.connect("leave-notify-event", self._on_leave_notify)
         self.connect("button-press-event", self.__on_button_press)
-        self.set_tooltip_text(_("Play this track"))
+        self.set_tooltip_text(_("Play this part"))
 
         # This box contains all content
         self.box = Gtk.Box()
@@ -397,6 +439,7 @@ class TrackElement(Gtk.EventBox):
         Select this track as the current position of the audio book. 
         Permanently displays the play icon.
         """
+        self.book.deselect_track_element()
         self.selected = True
         self.play_img.set_from_icon_name(
             "media-playback-start-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
@@ -407,3 +450,15 @@ class TrackElement(Gtk.EventBox):
         """
         self.selected = False
         self.play_img.clear()
+
+    def set_playing(self, playing):
+        """
+        Update the icon of this track
+        :param playing: Is currently playing?
+        """
+        if playing:
+            self.play_img.set_from_icon_name(
+                    "media-playback-pause-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+        else:
+            self.play_img.set_from_icon_name(
+                    "media-playback-start-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
