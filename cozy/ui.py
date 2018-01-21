@@ -332,6 +332,12 @@ class CozyUI:
         self.remaining_label.set_visible(False)
         self.progress_scale.set_visible(False)
 
+        # hide labels and progress bar read time
+        self.read_time_label.set_visible(False)
+        self.percent_progress_label.set_visible(False)
+        self.end_read_time_label.set_visible(False)
+        self.read_progress_bar.set_visible(False)
+
         # hide throbber
         self.throbber.set_visible(False)
 
@@ -532,6 +538,11 @@ class CozyUI:
 
         self.remaining_label.set_visible(False)
         self.current_label.set_visible(False)
+
+        self.read_time_label.set_visible(False)
+        self.percent_progress_label.set_visible(False)
+        self.end_read_time_label.set_visible(False)
+        self.read_progress_bar.set_visible(False)
 
         self.block_ui_buttons(True)
 
@@ -1094,16 +1105,15 @@ class CozyUI:
         if self.book_duration > 0:
             percent = int((position * 100) / self.book_duration)
             self.current_book_element.update_time(position, percent)
-
-            # tools.seconds_to_str(position),
             self.read_time_label.set_markup("%s" % tools.seconds_to_str(position))
             self.percent_progress_label.set_markup("%d %%" % percent)
-            self.read_progress_bar.set_fraction(percent / 100)
             self.end_read_time_label.set_markup("%s" % tools.seconds_to_str(self.book_duration - position))
-
-            # self.percent_read_label.set_markup("<b>%s</b> (%d%%)" % (tools.seconds_to_str(position), percent))
+            self.read_progress_bar.set_fraction(percent / 100)
         # else:
-            # self.percent_read_label.set_text("")
+        #     self.read_time_label.set_text("")
+        #     self.percent_progress_label.set_text("")
+        #     self.end_read_time_label.set_text("")
+        #     self.read_progress_bar.set_fraction("")
 
     def __update_ui_time(self, widget):
         """
@@ -1173,6 +1183,10 @@ class CozyUI:
 
         self.remaining_label.set_visible(True)
         self.current_label.set_visible(True)
+        self.read_time_label.set_visible(True)
+        self.percent_progress_label.set_visible(True)
+        self.end_read_time_label.set_visible(True)
+        self.read_progress_bar.set_visible(True)
 
     def _update_current_track_element(self):
         """
