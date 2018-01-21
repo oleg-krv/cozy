@@ -93,8 +93,9 @@ class RepeatedTimer(object):
 
 def seconds_to_str(seconds, short=False):
     """
-    Converts seconds to a string with the following apperance:
-    hh:mm:ss
+    Converts seconds to a string with the following appearance:
+    short=True : hh:mm:ss
+    short=False : hh _("h") mm _("min")
 
     :param short: short or full view
     :param seconds: The seconds as float
@@ -109,6 +110,8 @@ def seconds_to_str(seconds, short=False):
         else:
             result = "00:%02d" % s
     else:
+        if int(s) >= 30:
+            m += 1
         if h > 0:
             result = "%d %s %d %s" % (h, _("h"), m, _("min"))
         else:
