@@ -204,7 +204,12 @@ class CozyUI:
 
         # time labels
         self.time_book_label = self.window_builder.get_object("time_book_label")
-        self.percent_read_label = self.window_builder.get_object("percent_read_label")
+        # self.percent_read_label = self.window_builder.get_object("percent_read_label")
+
+        self.read_time_label = self.window_builder.get_object("read_time_label")
+        self.percent_progress_label = self.window_builder.get_object("percent_progress_label")
+        self.read_progress_bar = self.window_builder.get_object("read_progress_bar")
+        self.end_read_time_label = self.window_builder.get_object("end_read_time_label")
 
         # get settings window
         self.settings_window = self.settings_builder.get_object(
@@ -517,7 +522,7 @@ class CozyUI:
         self.subtitle_label.set_text("")
 
         self.time_book_label.set_text("")
-        self.percent_read_label.set_text("")
+        # self.percent_read_label.set_text("")
 
         self.cover_img.set_from_pixbuf(None)
 
@@ -1054,7 +1059,7 @@ class CozyUI:
         self.progress_scale.set_visible(True)
 
         self.time_book_label.set_visible(True)
-        self.percent_read_label.set_visible(True)
+        # self.percent_read_label.set_visible(True)
 
         # only change cover when book has changed
         if self.current_book is not track.book:
@@ -1089,10 +1094,16 @@ class CozyUI:
         if self.book_duration > 0:
             percent = int((position * 100) / self.book_duration)
             self.current_book_element.update_time(position, percent)
-            self.percent_read_label.set_markup("<b>%s</b> (%d%%)" % (
-                tools.seconds_to_str(position), percent))
-        else:
-            self.percent_read_label.set_text("")
+
+            # tools.seconds_to_str(position),
+            self.read_time_label.set_markup("%s" % tools.seconds_to_str(position))
+            self.percent_progress_label.set_markup("%d %%" % percent)
+            self.read_progress_bar.set_fraction(percent / 100)
+            self.end_read_time_label.set_markup("%s" % tools.seconds_to_str(self.book_duration - position))
+
+            # self.percent_read_label.set_markup("<b>%s</b> (%d%%)" % (tools.seconds_to_str(position), percent))
+        # else:
+            # self.percent_read_label.set_text("")
 
     def __update_ui_time(self, widget):
         """

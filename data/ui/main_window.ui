@@ -827,6 +827,28 @@ audio-volume-medium-symbolic</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkLabel" id="time_book_label">
+                    <property name="name">time_book</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="single_line_mode">True</property>
+                    <child internal-child="accessible">
+                      <object class="AtkObject" id="time_book-atkobject">
+                        <property name="AtkObject::accessible-name" translatable="yes">Time book</property>
+                        <property name="AtkObject::accessible-description" translatable="yes">Time of currently playing book</property>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="time_book"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -850,75 +872,194 @@ audio-volume-medium-symbolic</property>
                   <object class="GtkBox" id="position_box">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
                     <property name="margin_right">20</property>
-                    <property name="hexpand">True</property>
                     <child>
-                      <object class="GtkLabel" id="current_label">
-                        <property name="width_request">35</property>
+                      <object class="GtkBox" id="position_file_box">
+                        <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Elapsed time</property>
-                        <property name="halign">end</property>
-                        <property name="margin_right">3</property>
-                        <property name="margin_top">2</property>
-                        <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
-                        <property name="use_markup">True</property>
-                        <child internal-child="accessible">
-                          <object class="AtkObject" id="current_label-atkobject">
-                            <property name="AtkObject::accessible-name" translatable="yes">Time elapsed</property>
-                            <property name="AtkObject::accessible-description" translatable="yes">Elapsed time of current part</property>
+                        <property name="hexpand">False</property>
+                        <child>
+                          <object class="GtkLabel" id="current_label">
+                            <property name="width_request">35</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Elapsed time</property>
+                            <property name="halign">start</property>
+                            <property name="margin_right">3</property>
+                            <property name="margin_top">2</property>
+                            <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
+                            <property name="use_markup">True</property>
+                            <child internal-child="accessible">
+                              <object class="AtkObject" id="current_label-atkobject">
+                                <property name="AtkObject::accessible-name" translatable="yes">Time elapsed</property>
+                                <property name="AtkObject::accessible-description" translatable="yes">Elapsed time of current part</property>
+                              </object>
+                            </child>
                           </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkScale" id="progress_scale">
+                            <property name="width_request">150</property>
+                            <property name="sensitive">False</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">Scrubb through current part</property>
+                            <property name="hexpand">False</property>
+                            <property name="round_digits">1</property>
+                            <property name="draw_value">False</property>
+                            <child internal-child="accessible">
+                              <object class="AtkObject" id="progress_scale-atkobject">
+                                <property name="AtkObject::accessible-name" translatable="yes">Position slider</property>
+                                <property name="AtkObject::accessible-description" translatable="yes">Position of the current part in seconds</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="remaining_label">
+                            <property name="width_request">35</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Remaining time</property>
+                            <property name="halign">start</property>
+                            <property name="margin_left">3</property>
+                            <property name="margin_top">2</property>
+                            <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
+                            <property name="use_markup">True</property>
+                            <child internal-child="accessible">
+                              <object class="AtkObject" id="remaining_label-atkobject">
+                                <property name="AtkObject::accessible-name" translatable="yes">Time remaining</property>
+                                <property name="AtkObject::accessible-description" translatable="yes">Remaining time of current part</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
+                          </packing>
                         </child>
                       </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
                     </child>
                     <child>
-                      <object class="GtkScale" id="progress_scale">
-                        <property name="width_request">150</property>
-                        <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="tooltip_text" translatable="yes">Scrubb through current part</property>
+                      <object class="GtkBox" id="position_read_box">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="margin_right">0</property>
                         <property name="hexpand">True</property>
-                        <property name="round_digits">1</property>
-                        <property name="draw_value">False</property>
-                        <child internal-child="accessible">
-                          <object class="AtkObject" id="progress_scale-atkobject">
-                            <property name="AtkObject::accessible-name" translatable="yes">Position slider</property>
-                            <property name="AtkObject::accessible-description" translatable="yes">Position of the current part in seconds</property>
+                        <property name="margin_bottom">6</property>
+                        <child>
+                          <object class="GtkOverlay" id="read_progress_overlay">
+                            <child type="overlay">
+                              <object class="GtkBox" id="position2_read_box">
+                                <style>
+                                  <class name="player_read_progress_percent"/>
+                                </style>
+                                <child>
+                                  <object class="GtkLabel" id="read_time_label">
+                                    <property name="width_request">35</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Read time</property>
+                                    <property name="halign">center</property>
+                                    <property name="margin_right">0</property>
+                                    <property name="margin_left">10</property>
+                                    <property name="margin_top">0</property>
+                                    <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
+                                    <property name="use_markup">True</property>
+                                    <child internal-child="accessible">
+                                      <object class="AtkObject" id="current_label2-atkobject">
+                                        <property name="AtkObject::accessible-name" translatable="yes">Read time</property>
+                                        <property name="AtkObject::accessible-description" translatable="yes">Read time</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="percent_progress_label">
+                                    <property name="can_focus">False</property>
+                                    <property name="halign">center</property>
+                                    <property name="margin_left">5</property>
+                                    <property name="margin_right">5</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="label">100 %</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="end_read_time_label">
+                                    <property name="width_request">35</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">It remains to hear</property>
+                                    <property name="halign">center</property>
+                                    <property name="margin_left">3</property>
+                                    <property name="margin_right">10</property>
+                                    <property name="margin_top">2</property>
+                                    <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
+                                    <property name="use_markup">True</property>
+                                    <child internal-child="accessible">
+                                      <object class="AtkObject" id="end_read_time_label-atkobject">
+                                        <property name="AtkObject::accessible-name" translatable="yes">It remains to hear</property>
+                                        <property name="AtkObject::accessible-description" translatable="yes">It remains to hear of this book</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkProgressBar" id="read_progress_bar">
+                                <property name="tooltip_text" translatable="yes">Progress read</property>
+                                <property name="margin_left">0</property>
+                                <property name="margin_right">0</property>
+                                <!--<property name="width_request">150</property>-->
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
+                                <property name="valign">center</property>
+                                <style>
+                                  <class name="player_read_progress"/>
+                                </style>
+                                <child internal-child="accessible">
+                                  <object class="AtkObject" id="read_progress_bar-atkobject">
+                                    <property name="AtkObject::accessible-name" translatable="yes">Progress read
+                                    </property>
+                                    <property name="AtkObject::accessible-description" translatable="yes">Progress read
+                                      of this book
+                                    </property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
                         </child>
                       </object>
-                      <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="remaining_label">
-                        <property name="width_request">35</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Remaining time</property>
-                        <property name="halign">start</property>
-                        <property name="margin_left">3</property>
-                        <property name="margin_top">2</property>
-                        <property name="label">&lt;tt&gt;&lt;b&gt;--:--&lt;/b&gt;&lt;/tt&gt;</property>
-                        <property name="use_markup">True</property>
-                        <child internal-child="accessible">
-                          <object class="AtkObject" id="remaining_label-atkobject">
-                            <property name="AtkObject::accessible-name" translatable="yes">Time remaining</property>
-                            <property name="AtkObject::accessible-description" translatable="yes">Remaining time of current part</property>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">3</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -985,32 +1126,6 @@ audio-volume-medium-symbolic</property>
             <property name="margin_right">15</property>
             <property name="vexpand">True</property>
             <property name="orientation">vertical</property>
-            <child>
-              <object class="GtkLabel" id="time_book_label">
-                <property name="name">time_book</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="valign">end</property>
-                <property name="vexpand">True</property>
-                <property name="ellipsize">end</property>
-                <property name="width_chars">10</property>
-                <property name="single_line_mode">True</property>
-                <child internal-child="accessible">
-                  <object class="AtkObject" id="time_book-atkobject">
-                    <property name="AtkObject::accessible-name" translatable="yes">Time book</property>
-                    <property name="AtkObject::accessible-description" translatable="yes">Time of currently playing book</property>
-                  </object>
-                </child>
-                <style>
-                  <class name="time_book"/>
-                </style>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
             <child>
               <object class="GtkLabel" id="percent_read_label">
                 <property name="name">percent_readed</property>

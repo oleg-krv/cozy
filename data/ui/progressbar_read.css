@@ -22,3 +22,15 @@ progressbar.progress_read progress.full {
     min-height: 22px;
     box-shadow: none;
 }
+
+.player_read_progress trough,
+.player_read_progress progress {
+  min-height: 18px;
+}
+
+.player_read_progress_percent {
+  color: @theme_fg_color;
+  font-size: 90%;
+  font-stretch: expanded;
+  font-weight: bold;
+}
